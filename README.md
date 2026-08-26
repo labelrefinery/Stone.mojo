@@ -33,7 +33,7 @@ which is the reason it is worth writing in Mojo:
 | `CellFeatures` | the (slope, roughness, step) feature vector |
 | `TerrainGrid` | the binned sweep; ingest and finalize live here |
 | `TraversabilityModel` | Gaussian fitted to the driven cells |
-| `StoneLabels` | per-cell labels: `UNKNOWN`, `TRAVERSABLE`, `NON_TRAVERSABLE` |
+| `StoneLabels` | per-cell labels: `LABEL_UNKNOWN`, `LABEL_TRAVERSABLE`, `LABEL_NON_TRAVERSABLE` |
 
 Tunables (minimum points per cell, the χ²(3) cutoff, per-feature noise floors)
 are `comptime` constants at the top of the file.
