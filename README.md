@@ -21,7 +21,7 @@ which is the reason it is worth writing in Mojo:
 
 ## API
 
-`src/stone.mojo` is the whole library. The types, in pipeline order:
+`src/stone/__init__.mojo` is the whole library. The types, in pipeline order:
 
 | type | role |
 | --- | --- |
@@ -38,8 +38,30 @@ which is the reason it is worth writing in Mojo:
 Tunables (minimum points per cell, the χ²(3) cutoff, per-feature noise floors)
 are `comptime` constants at the top of the file.
 
-## Use
+## Install
+
+As a [mojoshelf](https://mojoshelf.org) tin, in pixi mode:
 
 ```
-mojo run -I src your_program.mojo
+pixi shelf add stone-mojo
+```
+
+or as a submodule:
+
+```
+shelf add stone-mojo          # then: mojo run -I shelf/stone-mojo/src ...
+```
+
+The registry and conda package name is `stone-mojo` — plain `stone` is taken
+on conda-forge by an unrelated project — while the Mojo import name stays
+`stone`:
+
+```mojo
+from stone import GridSpec, TerrainGrid, TraversabilityModel
+```
+
+## Build
+
+```
+pixi build     # produces lib/mojo/stone.mojopkg
 ```
