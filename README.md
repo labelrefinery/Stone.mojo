@@ -1,4 +1,4 @@
-# stone-mojo
+# Stone.mojo
 
 [![mojoshelf](https://mojoshelf.org/badge/stone-mojo.svg)](https://mojoshelf.org/tins/stone-mojo) [![mojo nightly](https://mojoshelf.org/badge/stone-mojo/nightly.svg)](https://mojoshelf.org/tins/stone-mojo)
 
@@ -57,7 +57,7 @@ shelf add stone-mojo          # then: mojo run -I shelf/stone-mojo/src ...
 Maintainers release new versions with `shelf publish` from the repo root
 (see [getting started](https://mojoshelf.org/getting-started)).
 
-The registry and conda package name is `stone-mojo` — plain `stone` is taken
+The registry and conda package name stays `stone-mojo` — plain `stone` is taken
 on conda-forge by an unrelated project — while the Mojo import name stays
 `stone`:
 
