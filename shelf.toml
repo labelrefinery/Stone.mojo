@@ -1,5 +1,5 @@
 name = "stone-mojo"
-version = "0.1.0"
+version = "0.2.0"
 description = "STONE-style annotation-free terrain traversability auto-labeling in pure Mojo"
 tags = ["autolabeling", "lidar", "traversability", "robotics", "geometry"]
 tins = []

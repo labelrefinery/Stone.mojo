@@ -1,6 +1,6 @@
 [workspace]
 name = "stone-mojo"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Marius Seritan <marius@seritan.net>"]
 description = "STONE-style annotation-free terrain traversability auto-labeling in pure Mojo"
 preview = ["pixi-build"]
@@ -11,12 +11,12 @@ channels = [
 platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
 
 [dependencies]
-mojo = "==1.0.0"
+mojo = "==1.2.0"
 
 # ── pixi-build: consumable as a pixi source dependency ──────────────────────
 [package]
 name = "stone-mojo"
-version = "0.1.0"
+version = "0.2.0"
 
 [package.build]
 backend = { name = "pixi-build-mojo", version = "0.*" }
@@ -26,10 +26,10 @@ path = "src/stone"
 name = "stone"
 
 [package.host-dependencies]
-mojo-compiler = "==1.0.0"
+mojo-compiler = "==1.2.0"
 
 [package.build-dependencies]
-mojo-compiler = "==1.0.0"
+mojo-compiler = "==1.2.0"
 
 [package.run-dependencies]
-mojo-compiler = "==1.0.0"
+mojo-compiler = "==1.2.0"
