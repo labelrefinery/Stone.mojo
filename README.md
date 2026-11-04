@@ -29,11 +29,12 @@ which is the reason it is worth writing in Mojo:
 | --- | --- |
 | `Vec3` | 3-D point |
 | `GridSpec` | grid origin, resolution, extent |
-| `CellAccumulator` | streaming per-cell moments during ingest |
+| `CellAccumulator` | streaming per-cell moments during ingest; `merge` adds another's |
+| `CellPatch` | the cells one batch of points touched: a sparse piece of a grid, built anywhere and `merge`d into a `TerrainGrid` |
 | `Sym3` / `Eigen3` | symmetric 3×3 scatter matrix and its eigendecomposition |
 | `TerrainCell` | a finalized cell: plane fit + derived features |
 | `CellFeatures` | the (slope, roughness, step) feature vector |
-| `TerrainGrid` | the binned sweep; ingest and finalize live here |
+| `TerrainGrid` | the binned sweep; ingest, merge and finalize live here |
 | `TraversabilityModel` | Gaussian fitted to the driven cells |
 | `StoneLabels` | per-cell labels: `LABEL_UNKNOWN`, `LABEL_TRAVERSABLE`, `LABEL_NON_TRAVERSABLE` |
 
