@@ -13,6 +13,9 @@ platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
 [dependencies]
 mojo = "==1.2.0"
 
+[tasks]
+test = { cmd = "mojo run -I src test/test_merge.mojo", description = "Patches merged into a grid, against streaming" }
+
 # ── pixi-build: consumable as a pixi source dependency ──────────────────────
 [package]
 name = "stone-mojo"

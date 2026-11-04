@@ -126,6 +126,17 @@ struct GridSpec(ImplicitlyCopyable, Movable):
     def cell_count(self) -> Int:
         return self.nx * self.ny
 
+    def same_as(self, other: GridSpec) -> Bool:
+        """The same lattice: one's cell indices mean the same cells in the
+        other."""
+        return (
+            self.origin_x == other.origin_x
+            and self.origin_y == other.origin_y
+            and self.cell_size == other.cell_size
+            and self.nx == other.nx
+            and self.ny == other.ny
+        )
+
     def index_of(self, x: Float64, y: Float64) -> Int:
         """Flat cell index for a world point, or -1 if outside the grid."""
         var ix = Int((x - self.origin_x) / self.cell_size)
@@ -194,6 +205,94 @@ struct CellAccumulator(ImplicitlyCopyable, Movable):
         self.sum_yy += p.y * p.y
         self.sum_yz += p.y * p.z
         self.sum_zz += p.z * p.z
+
+    def merge(mut self, other: CellAccumulator):
+        """Adds `other`'s points, as if they had been `add`ed here.
+
+        Count, `z_min` and `z_max` come out exactly as streaming would give
+        them, in any order. The sums are floating point, so they can differ
+        from a stream in the last bits depending on how the points were
+        grouped; merging the same groups in the same order always gives the
+        same bits.
+        """
+        if other.count == 0:
+            return
+        if self.count == 0:
+            self = other
+            return
+        if other.z_min < self.z_min:
+            self.z_min = other.z_min
+        if other.z_max > self.z_max:
+            self.z_max = other.z_max
+        self.count += other.count
+        self.sum_x += other.sum_x
+        self.sum_y += other.sum_y
+        self.sum_z += other.sum_z
+        self.sum_xx += other.sum_xx
+        self.sum_xy += other.sum_xy
+        self.sum_xz += other.sum_xz
+        self.sum_yy += other.sum_yy
+        self.sum_yz += other.sum_yz
+        self.sum_zz += other.sum_zz
+
+
+struct CellPatch(Copyable, Movable, Sized):
+    """The cells one batch of points touched, and their moments: a sparse
+    piece of a `TerrainGrid`.
+
+    This is how a grid is built in pieces, one sweep per worker, and merged:
+    a sweep touches a small part of a grid that covers a whole drive, so a
+    dense grid per sweep would be mostly zeros. `indices` ascend, and
+    `accumulators[i]` is the cell at `indices[i]` of `spec`.
+    """
+
+    var spec: GridSpec
+    var indices: List[Int]
+    var accumulators: List[CellAccumulator]
+
+    def __init__(out self, spec: GridSpec):
+        self.spec = spec
+        self.indices = List[Int]()
+        self.accumulators = List[CellAccumulator]()
+
+    def __init__(
+        out self,
+        spec: GridSpec,
+        var indices: List[Int],
+        var accumulators: List[CellAccumulator],
+    ):
+        self.spec = spec
+        self.indices = indices^
+        self.accumulators = accumulators^
+
+    @staticmethod
+    def of(spec: GridSpec, points: List[Vec3]) -> CellPatch:
+        """Bins `points` into `spec`'s cells, keeping only the touched ones.
+        Points outside the grid are dropped, as `TerrainGrid.ingest` drops
+        them."""
+        var slot = Dict[Int, Int]()
+        var touched = List[Int]()
+        var accs = List[CellAccumulator]()
+        for i in range(len(points)):
+            var p = points[i]
+            var idx = spec.index_of(p.x, p.y)
+            if idx < 0:
+                continue
+            var s = slot.get(idx, -1)
+            if s < 0:
+                s = len(accs)
+                slot[idx] = s
+                touched.append(idx)
+                accs.append(CellAccumulator())
+            accs[s].add(p)
+        sort(touched)
+        var ordered = List[CellAccumulator](capacity=len(touched))
+        for idx in touched:
+            ordered.append(accs[slot.get(idx, 0)])
+        return CellPatch(spec, touched^, ordered^)
+
+    def __len__(self) -> Int:
+        return len(self.indices)
 
 
 # ===----------------------------------------------------------------------===
@@ -518,6 +617,16 @@ struct TerrainGrid(Movable):
             var idx = self.spec.index_of(p.x, p.y)
             if idx >= 0:
                 self.accumulators[idx].add(p)
+
+    def merge(mut self, patch: CellPatch) raises:
+        """Stage 1, in pieces. Adds a patch built elsewhere, such as one sweep
+        binned on another machine, as if its points had been `ingest`ed here.
+        Merging the same patches in the same order always gives the same
+        grid; see `CellAccumulator.merge` for how it compares to `ingest`."""
+        if not self.spec.same_as(patch.spec):
+            raise Error("stone: a patch on another grid can't be merged")
+        for i in range(len(patch.indices)):
+            self.accumulators[patch.indices[i]].merge(patch.accumulators[i])
 
     def finalize(mut self):
         """Stage 2. Fit every observed cell."""
